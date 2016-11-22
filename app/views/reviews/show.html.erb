@@ -1,0 +1,49 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Summary:</strong>
+  <%= @review.summary %>
+</p>
+
+<p>
+  <strong>Pros:</strong>
+  <%= @review.pros %>
+</p>
+
+<p>
+  <strong>Cons:</strong>
+  <%= @review.cons %>
+</p>
+
+<p>
+  <strong>Starts:</strong>
+  <%= @review.starts %>
+</p>
+
+<p>
+  <strong>Recommendation:</strong>
+  <%= @review.recommendation %>
+</p>
+
+<p>
+  <strong>Useful:</strong>
+  <%= @review.useful %>
+</p>
+
+<p>
+  <strong>Not useful:</strong>
+  <%= @review.not_useful %>
+</p>
+
+<p>
+  <strong>Author:</strong>
+  <%= @review.author %>
+</p>
+
+<p>
+  <strong>Product:</strong>
+  <%= @review.product %>
+</p>
+
+<%= link_to 'Edit', edit_review_path(@review) %> |
+<%= link_to 'Back', reviews_path %>

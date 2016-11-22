@@ -1,0 +1,23 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  summary: MyText
+  pros: 
+  cons: MyString
+  starts: 1.5
+  recommendation: MyString
+  useful: 1
+  not_useful: 1
+  author: MyString
+  product_id: 
+
+two:
+  summary: MyText
+  pros: 
+  cons: MyString
+  starts: 1.5
+  recommendation: MyString
+  useful: 1
+  not_useful: 1
+  author: MyString
+  product_id: 

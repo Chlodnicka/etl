@@ -1,0 +1,43 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Reviews</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Summary</th>
+      <th>Pros</th>
+      <th>Cons</th>
+      <th>Starts</th>
+      <th>Recommendation</th>
+      <th>Useful</th>
+      <th>Not useful</th>
+      <th>Author</th>
+      <th>Product</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @reviews.each do |review| %>
+      <tr>
+        <td><%= review.summary %></td>
+        <td><%= review.pros %></td>
+        <td><%= review.cons %></td>
+        <td><%= review.starts %></td>
+        <td><%= review.recommendation %></td>
+        <td><%= review.useful %></td>
+        <td><%= review.not_useful %></td>
+        <td><%= review.author %></td>
+        <td><%= review.product %></td>
+        <td><%= link_to 'Show', review %></td>
+        <td><%= link_to 'Edit', edit_review_path(review) %></td>
+        <td><%= link_to 'Destroy', review, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Review', new_review_path %>
