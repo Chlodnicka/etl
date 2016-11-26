@@ -1,5 +1,6 @@
 <p id="notice"><%= notice %></p>
-
+<h3><%= @review.product.model %></h3>
+<h4><%= @review.author %></h4>
 <p>
   <strong>Summary:</strong>
   <%= @review.summary %>
@@ -7,13 +8,25 @@
 
 <p>
   <strong>Pros:</strong>
-  <%= @review.pros %>
 </p>
+<% require 'json' %>
+<% pros = JSON.parse @review.pros %>
+<ul>
+  <% pros.each do |item| %>
+      <li><%= item %></li>
+  <% end %>
+</ul>
+
 
 <p>
   <strong>Cons:</strong>
-  <%= @review.cons %>
 </p>
+<% cons = JSON.parse @review.cons %>
+<ul>
+  <% cons.each do |item| %>
+      <li><%= item %></li>
+  <% end %>
+</ul>
 
 <p>
   <strong>Time:</strong>
@@ -36,13 +49,8 @@
 </p>
 
 <p>
-  <strong>Author:</strong>
-  <%= @review.author %>
+  <strong>Score:</strong>
+  <%= @review.score %>
 </p>
 
-<p>
-  <strong>Product:</strong>
-  <%= @review.product.model %>
-</p>
-
-<%= link_to 'Back', product_path(@review.product) %>
+<%= link_to 'Back', product_path(@review.product), class: "btn" %>

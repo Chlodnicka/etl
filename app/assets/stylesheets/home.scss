@@ -24,35 +24,6 @@
   p {
     font-size: 16px;
   }
-  .field > input {
-    min-height: 30px;
-    min-width: 200px;
-    -webkit-border-radius: 5px;
-    -moz-border-radius: 5px;
-    border-radius: 5px;
-    border: 0;
-    outline: 0;
-    padding: 5px 10px;
-    margin: 30px 0 10px 0;
-    font: 14px 'Titillium Web';
-    text-align: center;
-  }
-  .actions > input {
-    margin: 0;
-    width: 100px;
-    -webkit-border-radius: 5px;
-    -moz-border-radius: 5px;
-    border-radius: 5px;
-    border: 0;
-    outline: 0;
-    padding: 5px 10px;
-    font: 16px 'Titillium Web';
-    &:hover {
-      background-color: lightslategrey;
-      cursor: pointer;
-      color: #f0f0f0;
-    }
-  }
   .box {
     margin: 0 auto;
     max-width: 500px;

@@ -11,12 +11,11 @@
     </div>
   <% end %>
 
-  <div class="field">
-    <%= f.label :code %><br>
-    <%= f.text_field :code %>
-  </div>
+    <div class="field">
+      <%= f.text_field :code, placeholder: "INSERT CODE"%>
+    </div>
 
   <div class="actions">
-    <%= f.submit %>
+    <%= f.submit "ETL" %>
   </div>
 <% end %>

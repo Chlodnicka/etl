@@ -36,4 +36,99 @@ header {
 .container {
   max-width: 970px;
   margin: 50px auto;
+  p {
+    font-size:16px;
+  }
+  h3 {
+    font-size: 44px;
+  }
+  h4 {
+    font-size: 36px;
+  }
+  table {
+    font-size: 16px;
+    border-collapse: collapse;
+    margin-bottom: 50px;
+    thead {
+      border-bottom: 1px solid #333;
+      padding: 10px 5px;
+      tr > th {
+        min-width: 100px;
+        max-width: 200px;
+      }
+    }
+    tbody {
+      tr {
+        border-bottom: 1px solid #333;
+        td {
+          text-align: center;
+          min-width: 130px;
+          max-width: 350px;
+          padding: 15px 0;
+          &.action {
+            max-width: 50px;
+          }
+        }
+        &:last-of-type {
+          border-bottom: 0;
+        }
+      }
+    }
+  }
+  .reviews table tbody td {
+    min-width: 50px;
+  }
+}
+
+.btn, .actions > input {
+  padding: 5px 20px;
+  background-color: #2E2F30;
+  color: #f0f0f0;
+  border-radius: 10px;
+  text-decoration: none;
+  text-transform: uppercase;
+  outline: none;
+  border: 0;
+  font: 14px 'Titillium Web';
+  font-weight: 600;
+  &:visited {
+    color: #f0f0f0;
+    background-color: #2E2F30;
+  }
+  &:hover, &:active, &:focus {
+    background-color: #BBBBBB;
+    color: #333;
+    cursor: pointer;
+  }
+}
+
+.field > input {
+  min-height: 30px;
+  min-width: 200px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  border: 0;
+  outline: 0;
+  padding: 5px 10px;
+  margin: 30px 0 10px 0;
+  font: 14px 'Titillium Web';
+  text-align: center;
+}
+
+
+footer {
+  padding: 30px 20px;
+  background-color: #333;
+  color: #f0f0f0;
+  .title {
+    font-size: 22px;
+    font-weight: 600;
+    display: inline-block;
+    padding-right: 30px;
+  }
+  .author {
+    display: inline-block;
+    float: right;
+  }
 }
