@@ -2,9 +2,9 @@
 
 one:
   summary: MyText
-  pros: 
+  pros: MyString
   cons: MyString
-  starts: 1.5
+  time: 1.5
   recommendation: MyString
   useful: 1
   not_useful: 1
@@ -13,9 +13,9 @@ one:
 
 two:
   summary: MyText
-  pros: 
+  pros: MyString
   cons: MyString
-  starts: 1.5
+  time: 1.5
   recommendation: MyString
   useful: 1
   not_useful: 1
