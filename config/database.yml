@@ -21,7 +21,8 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
+    username: travis
+    encoding: utf8
 
 production:
   <<: *default
-  socket: /tmp/mysql.sock
