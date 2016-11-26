@@ -4,12 +4,12 @@ one:
   code: MyString
   brand: MyString
   model: MyString
-  type: 
+  category: MyString
   notes: MyString
 
 two:
   code: MyString
   brand: MyString
   model: MyString
-  type: 
+  category: MyString
   notes: MyString
