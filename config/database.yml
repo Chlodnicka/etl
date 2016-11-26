@@ -9,8 +9,8 @@ default: &default
   encoding: utf8
   database: etl_db
   pool: 5
-  username: root
-  password: qazWSX
+  username: etl_user
+  password: pankotekbylchory
   socket: /var/run/mysqld/mysqld.sock
 
 development:
@@ -24,4 +24,4 @@ test:
 
 production:
   <<: *default
-  database: etl_prod
+  socket: /tmp/mysql.sock
