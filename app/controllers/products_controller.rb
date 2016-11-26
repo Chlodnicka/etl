@@ -82,6 +82,19 @@ class ProductsController < ApplicationController
     end
   end
 
+  def delete_reviews
+    @reviews = Review.where(:product_id => params["product_id"])
+    puts params["product_id"]
+
+    @reviews.each{ |review|
+      review.destroy
+    }
+    respond_to do |format|
+      format.html { redirect_to products_url, notice: 'All reviews successfully destroyed' }
+      format.json { head :no_content }
+    end
+  end
+
   def get_product(product)
     require 'open-uri'
     filename = 'http://www.ceneo.pl/' + product.code + '#tab=spec'
