@@ -10,6 +10,8 @@ connection: &connection
 development:
   <<: *connection
 
-test: &test
-  <<: *connection
+test:
+  adapter: mysql2
+  encoding: utf8
+  database: etl_db
   username: travis
