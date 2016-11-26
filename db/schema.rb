@@ -11,13 +11,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161122160702) do
+ActiveRecord::Schema.define(version: 20161126111256) do
 
   create_table "products", force: :cascade do |t|
     t.string   "code",       limit: 255
     t.string   "brand",      limit: 255
     t.string   "model",      limit: 255
-    t.string   "type",       limit: 255
+    t.string   "category",   limit: 255
     t.string   "notes",      limit: 255
     t.datetime "created_at",             null: false
     t.datetime "updated_at",             null: false
@@ -27,7 +27,7 @@ ActiveRecord::Schema.define(version: 20161122160702) do
     t.text     "summary",        limit: 65535
     t.string   "pros",           limit: 255
     t.string   "cons",           limit: 255
-    t.float    "starts",         limit: 24
+    t.float    "time",           limit: 24
     t.string   "recommendation", limit: 255
     t.integer  "useful",         limit: 4
     t.integer  "not_useful",     limit: 4
@@ -35,6 +35,8 @@ ActiveRecord::Schema.define(version: 20161122160702) do
     t.integer  "product_id",     limit: 4
     t.datetime "created_at",                   null: false
     t.datetime "updated_at",                   null: false
+    t.string   "code",           limit: 255
+    t.float    "score",          limit: 24
   end
 
   add_index "reviews", ["product_id"], name: "index_reviews_on_product_id", using: :btree

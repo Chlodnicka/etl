@@ -24,27 +24,45 @@ class ProductsController < ApplicationController
   # POST /products
   # POST /products.json
   def create
-    @product = Product.new(product_params)
+    @existing_prod = Product.where(:code => product_params["code"]).first
+    if @existing_prod == nil
+      @product = Product.new(product_params)
+      product_info = get_product(@product)
 
-    product_info = get_product(@product)
-    reviews = get_reviews(@product)
+      @proper_product = Product.new(product_info)
 
-    # respond_to do |format|
-    #    if @product.save
-    #     format.html { redirect_to @product, notice: 'Product was successfully created.' }
-    #    format.json { render :show, status: :created, location: @product }
-    #  else
-    #    format.html { render :new }
-    #    format.json { render json: @product.errors, status: :unprocessable_entity }
-    #   end
-    # end
+      reviews = get_reviews(@product)
+
+      respond_to do |format|
+        if @proper_product.save
+          reviews.each { |review|
+            review['product_id'] = @proper_product.id
+            @review = Review.new(review)
+            @review.save
+          }
+          format.html { redirect_to @product, notice: 'Product was successfully created.' }
+          format.json { render :show, status: :created, location: @product }
+        else
+          format.html { render :new }
+          format.json { render json: @product.errors, status: :unprocessable_entity }
+        end
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_to @existing_prod, notice: 'Product already exists. Wanna check for updates?' }
+        format.json { render :show, status: :created, location: @existing_prod }
+      end
+    end
   end
+
 
   # PATCH/PUT /products/1
   # PATCH/PUT /products/1.json
   def update
+    product_info = get_product(@product)
+    check_reviews_and_update(@product)
     respond_to do |format|
-      if @product.update(product_params)
+      if @product.update(product_info)
         format.html { redirect_to @product, notice: 'Product was successfully updated.' }
         format.json { render :show, status: :ok, location: @product }
       else
@@ -68,10 +86,13 @@ class ProductsController < ApplicationController
     require 'open-uri'
     filename = 'http://www.ceneo.pl/' + product.code + '#tab=spec'
     doc = Nokogiri::HTML(open(filename))
-    puts doc.css('.breadcrumb:last-of-type a span').text
-    puts doc.css('.ProductSublineTags').text
-    puts doc.css('.specs-group:first-of-type table tbody tr:first-of-type td ul li a').text
-    puts doc.css('h1.product-name').text
+    product = {
+        "category" => doc.css('.breadcrumb:last-of-type a span').text,
+        "notes" => doc.css('.ProductSublineTags').text,
+        "brand" => doc.css('.specs-group:first-of-type table tbody tr:first-of-type td ul li a').text,
+        "model" => doc.css('h1.product-name').text,
+        "code" => product.code
+    }
   end
 
   def get_reviews(product)
@@ -83,7 +104,7 @@ class ProductsController < ApplicationController
     reviews_content = []
     i = 0
     reviews.each { |review|
-      reviews_content[i] = get_review(review)
+      reviews_content[i] = parse_review(review)
       i +=1
     }
 
@@ -95,15 +116,15 @@ class ProductsController < ApplicationController
         doc = Nokogiri::HTML(open(filename))
         reviews = doc.css('.product-review')
         reviews.each { |review|
-          reviews_content[i] = get_review(review)
+          reviews_content[i] = parse_review(review)
           i +=1
         }
       }
     end
-    puts reviews_content
+    reviews_content
   end
 
-  def get_review(review)
+  def parse_review(review)
 
     require 'json'
 
@@ -128,7 +149,7 @@ class ProductsController < ApplicationController
 
     code = review.css('.vote-yes')
 
-    [
+    review_info = {
         'author' => review.css('.product-reviewer').text,
         'pros' => pros_array.to_json,
         'cons' => cons_array.to_json,
@@ -139,13 +160,23 @@ class ProductsController < ApplicationController
         'useful' => review.css('.vote-yes span').text,
         'not_useful' => review.css('.vote-no span').text,
         'code' => code[0]['data-review-id']
-    ]
+    }
 
   end
 
-  def parse_product()
-
+  def check_reviews_and_update(product)
+    new_reviews = get_reviews(product)
+    new_reviews.each { |new_review|
+      old_review = Review.find_by_code(new_review['code'])
+      if old_review == nil
+        review = Review.new(new_review)
+        review.save
+      else
+        old_review.update(new_review)
+      end
+    }
   end
+
 
   private
   # Use callbacks to share common setup or constraints between actions.
