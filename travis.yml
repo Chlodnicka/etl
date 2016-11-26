@@ -1,0 +1,9 @@
+language: ruby
+rvm:
+ - 2.2.3
+
+before_script:
+  - mysql -e 'create database etl_db;'
+
+services:
+  - mysql
