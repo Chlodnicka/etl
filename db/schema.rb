@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161126111256) do
+ActiveRecord::Schema.define(version: 20161126140203) do
 
   create_table "products", force: :cascade do |t|
     t.string   "code",       limit: 255
@@ -25,8 +25,8 @@ ActiveRecord::Schema.define(version: 20161126111256) do
 
   create_table "reviews", force: :cascade do |t|
     t.text     "summary",        limit: 65535
-    t.string   "pros",           limit: 255
-    t.string   "cons",           limit: 255
+    t.text     "pros",           limit: 65535
+    t.text     "cons",           limit: 65535
     t.float    "time",           limit: 24
     t.string   "recommendation", limit: 255
     t.integer  "useful",         limit: 4

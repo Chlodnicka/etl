@@ -128,7 +128,8 @@ class ProductsController < ApplicationController
 
     require 'json'
 
-    pros_array = cons_array = []
+    pros_array = []
+    cons_array = []
     i = j = 0
 
     pros = review.css('.pros-cell ul li')
@@ -169,6 +170,7 @@ class ProductsController < ApplicationController
     new_reviews.each { |new_review|
       old_review = Review.find_by_code(new_review['code'])
       if old_review == nil
+        new_review['product_id'] = product.id
         review = Review.new(new_review)
         review.save
       else

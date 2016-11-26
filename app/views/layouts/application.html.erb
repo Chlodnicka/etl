@@ -2,13 +2,28 @@
 <html>
 <head>
   <title>Etl</title>
-  <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
+  <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track' => true %>
   <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
   <%= csrf_meta_tags %>
 </head>
 <body>
 
-<%= yield %>
+<header>
+  <div class="intro">
+    <h1>ETL process</h1>
+    <h2>Get data from Ceneo</h2>
+  </div>
+</header>
+
+<article>
+  <div class="container">
+    <%= yield %>
+  </div>
+</article>
+
+<footer>
+  <p class="desc"></p>
+</footer>
 
 </body>
 </html>
