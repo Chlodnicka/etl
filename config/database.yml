@@ -12,4 +12,4 @@ development:
 
 test: &test
   <<: *connection
-  database: travis
+  username: travis
