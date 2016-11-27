@@ -3,7 +3,6 @@ rvm:
  - 2.2.3
 
 before_script:
-  - psql -c "CREATE USER travis WITH PASSWORD 'travis';" -U postgres
   - psql -c 'create database travis_ci_test;' -U postgres
 
 addons:
