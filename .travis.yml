@@ -3,7 +3,8 @@ rvm:
  - 2.2.3
 
 before_script:
-  - mysql -e 'create database etl_db;'
+  - psql -c "CREATE USER travis WITH PASSWORD 'travis';" -U postgres
+  - psql -c 'create database travis_ci_test;' -U postgres
 
-services:
-  - mysql
+addons:
+  postgresql: '9.3'

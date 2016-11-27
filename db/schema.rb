@@ -13,6 +13,9 @@
 
 ActiveRecord::Schema.define(version: 20161126140203) do
 
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "products", force: :cascade do |t|
     t.string   "code",       limit: 255
     t.string   "brand",      limit: 255
@@ -24,19 +27,19 @@ ActiveRecord::Schema.define(version: 20161126140203) do
   end
 
   create_table "reviews", force: :cascade do |t|
-    t.text     "summary",        limit: 65535
-    t.text     "pros",           limit: 65535
-    t.text     "cons",           limit: 65535
-    t.float    "time",           limit: 24
+    t.text     "summary"
+    t.text     "pros"
+    t.text     "cons"
+    t.float    "time"
     t.string   "recommendation", limit: 255
-    t.integer  "useful",         limit: 4
-    t.integer  "not_useful",     limit: 4
+    t.integer  "useful"
+    t.integer  "not_useful"
     t.string   "author",         limit: 255
-    t.integer  "product_id",     limit: 4
-    t.datetime "created_at",                   null: false
-    t.datetime "updated_at",                   null: false
+    t.integer  "product_id"
+    t.datetime "created_at",                 null: false
+    t.datetime "updated_at",                 null: false
     t.string   "code",           limit: 255
-    t.float    "score",          limit: 24
+    t.float    "score"
   end
 
   add_index "reviews", ["product_id"], name: "index_reviews_on_product_id", using: :btree
