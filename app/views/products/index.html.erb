@@ -28,5 +28,6 @@
     <% end %>
   </tbody>
 </table>
-<%= link_to 'Export to CSV', all_to_csv_path, class: "btn" %>
+
+<%= link_to "Export to CSV", reviews_path(format: "csv"), class: "btn" %>
 <%= link_to 'New Product', new_product_path,  class: "btn"%>

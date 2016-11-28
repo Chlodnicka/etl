@@ -10,6 +10,11 @@ class ProductsController < ApplicationController
   # GET /products/1
   # GET /products/1.json
   def show
+    @reviews = @product.reviews
+    respond_to do |format|
+      format.html
+      format.csv { send_data @reviews.to_csv }
+    end
   end
 
   # GET /products/new

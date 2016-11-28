@@ -26,12 +26,11 @@
 
 <%= link_to 'Update', edit_product_path(@product), class: "btn" %>
 <%= link_to 'Delete reviews', product_delete_reviews_path(@product), class: "btn" %>
-<%= link_to 'Export to CSV', product_export_to_csv_path(@product), class: "btn" %>
+<%= link_to "Export to CSV", product_path(@product, format: "csv"), class: "btn" %>
 <%= link_to 'Back', products_path, class: "btn" %>
 
 <div class="reviews">
   <h4>Reviews</h4>
-
   <table>
     <thead>
     <tr>

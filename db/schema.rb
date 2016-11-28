@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161126140203) do
+ActiveRecord::Schema.define(version: 20161128151244) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -24,13 +24,13 @@ ActiveRecord::Schema.define(version: 20161126140203) do
     t.string   "notes",      limit: 255
     t.datetime "created_at",             null: false
     t.datetime "updated_at",             null: false
+    t.string   "status"
   end
 
   create_table "reviews", force: :cascade do |t|
     t.text     "summary"
     t.text     "pros"
     t.text     "cons"
-    t.float    "time"
     t.string   "recommendation", limit: 255
     t.integer  "useful"
     t.integer  "not_useful"
@@ -40,6 +40,7 @@ ActiveRecord::Schema.define(version: 20161126140203) do
     t.datetime "updated_at",                 null: false
     t.string   "code",           limit: 255
     t.float    "score"
+    t.datetime "time"
   end
 
   add_index "reviews", ["product_id"], name: "index_reviews_on_product_id", using: :btree

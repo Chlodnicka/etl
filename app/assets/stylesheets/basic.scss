@@ -75,7 +75,7 @@ header {
       }
     }
   }
-  .reviews table tbody td {
+  .reviews table tbody tr td, .reviews table thead tr th {
     min-width: 50px;
   }
 }
