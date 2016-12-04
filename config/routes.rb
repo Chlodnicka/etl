@@ -3,6 +3,11 @@ Rails.application.routes.draw do
   resources :products
   resources :products do
     get "delete_reviews"
+    post "extract"
+    get "transform_view"
+    post "transform"
+    get "load_view"
+    post "load"
   end
   root to: 'home#index'
   # The priority is based upon order of creation: first created -> highest priority.

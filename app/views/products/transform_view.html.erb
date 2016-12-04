@@ -1,0 +1,13 @@
+<h3>New Product</h3>
+
+
+<%= form_for @product, :url => product_transform_path(@product) do |f| %>
+
+    <%= f.hidden_field :code %>
+
+    <div class="actions">
+      <%= f.submit "Transform" %>
+    </div>
+<% end %>
+
+<%= link_to 'Back', products_path, class: "link-btn" %>
