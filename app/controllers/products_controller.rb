@@ -45,12 +45,12 @@ class ProductsController < ApplicationController
         end
       end
       if is_extract?
-        directory_name = "#{Rails.root}/public/tmp/#{product_params["code"]}"
+        directory_name = "#{Rails.root}/public/tmp/#{product_params["code"]}/extract"
         if !File.exists?(directory_name)
-          Dir.mkdir(directory_name)
+          FileUtils.mkdir_p(directory_name)
         end
         @product.extract(product_params["code"], directory_name)
-        Rails.cache.write(product_params["code"], product_params["code"])
+        @product.status = "extracted"
         if @product.save
           respond_to do |format|
             format.html { render :transform_view, id: @product.id, notice: 'Data extracted successfully. Wanna continue?' }
@@ -70,6 +70,50 @@ class ProductsController < ApplicationController
     end
   end
 
+  def transform
+    product = Product.where(:code => product_params["code"]).first
+    if product.status == 'extracted'
+      data = product.transform_data(product_params["code"])
+
+      puts produce_xml(data)
+
+    #  FileUtils.rm_rf("#{Rails.root}/public/tmp/#{product_params["code"]}/extract")
+
+    end
+  end
+
+  def load
+
+  end
+
+  def produce_xml(data)
+    require 'builder'
+    xml = Builder::XmlMarkup.new(:indent => 2)
+    xml.instruct! :xml, :encoding => "ASCII"
+
+    data["product"].each { |prod|
+      xml.product do |p|
+        p.code prod.code
+        p.model prod.model
+        p.category prod.category
+        p.notes prod.notes
+        p.brand prod.brand
+        data["reviews_info"].each { |rev|
+          xml.reviews do |r|
+            r.author rev["author"]
+            r.pros rev["pros"]
+            r.cons rev["cons"]
+            r.summary rev["summary"]
+            r.score rev["score"]
+            r.time rev["time"]
+            r.recommendation rev["recommendation"]
+            r.useful rev["useful"]
+            r.not_useful rev["not_useful"]
+          end
+        }
+      end
+    }
+  end
 
   # PATCH/PUT /products/1
   # PATCH/PUT /products/1.json

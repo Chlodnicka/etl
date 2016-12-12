@@ -4,6 +4,7 @@ class Product < ActiveRecord::Base
   def etl(code)
     product_info = get_product_from_ceneo(code)
     product = Product.new(product_info)
+    product.status = "loaded"
     reviews = get_reviews_from_ceneo(code)
     result = {
         'product' => product,
@@ -121,25 +122,63 @@ class Product < ActiveRecord::Base
     open(name, 'w')
     IO.copy_stream(download, name)
     reviews_amount = Nokogiri::HTML(download).css('.page-tab.reviews').text
-    reviews_amount = /[0-9]+/.match(reviews_amount)[0].to_i
-    pagination = reviews_amount/10
-    last = reviews_amount%10
-    if last > 0
-      pagination +=1
-    end
+    puts reviews_amount
+    if reviews_amount != nil
+      reviews_amount = /[0-9]+/.match(reviews_amount)[0].to_i
+      pagination = reviews_amount/10
+      last = reviews_amount%10
+      if last > 0
+        pagination +=1
+      end
 
-    i = 1
-    if pagination > 1
-      while i < pagination
-        number = (i+1).to_s
-        filename = "http://www.ceneo.pl/#{code}/opinie-#{number}"
-        download = open(filename)
-        name = "#{directory}/#{code}_reviews_#{number}.html"
-        open(name, 'w')
-        IO.copy_stream(download, name)
-        i +=1
+      i = 1
+      if pagination > 1
+        while i < pagination
+          number = (i+1).to_s
+          filename = "http://www.ceneo.pl/#{code}/opinie-#{number}"
+          download = open(filename)
+          name = "#{directory}/#{code}_reviews_#{number}.html"
+          open(name, 'w')
+          IO.copy_stream(download, name)
+          i +=1
+        end
       end
     end
+  end
+
+  def transform_data(code)
+    require 'open-uri'
+    filename = "#{Rails.root}/public/tmp/#{code}/extract/#{code}.html"
+    doc = Nokogiri::HTML(open(filename))
+    product = {
+        "category" => doc.css('.breadcrumb:last-of-type a span').text,
+        "notes" => doc.css('.ProductSublineTags').text,
+        "brand" => doc.css('.specs-group:first-of-type table tbody tr:first-of-type td ul li a').text,
+        "model" => doc.css('h1.product-name').text,
+        "code" => code
+    }
+    counter = 1
+    reviews_counter = 0
+    !File.exists?(directory_name)
+    while File.exists?("#{Rails.root}/public/tmp/#{code}/extract/#{code}_reviews_#{counter.to_s}.html")
+      doc = Nokogiri::HTML(open("#{Rails.root}/public/tmp/#{code}/extract/#{code}_reviews_#{counter.to_s}.html"))
+      reviews = doc.css('.product-review')
+      reviews.each { |review|
+        reviews_content[reviews_counter] = parse_review(review)
+        reviews_counter +=1
+      }
+      counter += 1
+    end
+
+    product_info = {
+        'product' => product,
+        'reviews' => reviews_content
+    }
+
+  end
+
+  def load
+
   end
 
 end
