@@ -40,8 +40,10 @@ class ProductsController < ApplicationController
             review = Review.new(review)
             review.save
           }
-          format.html { redirect_to result.product, notice: 'Product was successfully updated.' }
-          format.json { render :show, status: :ok, location: result.product }
+          respond_to do |format|
+            format.html { render :show, id: @product.id, notice: 'Product was successfully updated.' }
+            format.json { render :show, status: :ok, location: @product }
+          end
         end
       end
       if is_extract?
@@ -64,7 +66,7 @@ class ProductsController < ApplicationController
       end
     else
       respond_to do |format|
-        format.html { redirect_to @existing_prod, notice: 'Product already exists. Wanna check for updates?' }
+        format.html { redirect_to existing_prod, notice: 'Product already exists. Wanna check for updates?' }
         format.json { render :show, status: :created, location: @existing_prod }
       end
     end
