@@ -5,7 +5,8 @@ Rails.application.routes.draw do
     get "delete_reviews"
     post "extract"
     get "transform_view"
-    post "transform"
+    get "transform"
+    patch "transform"
     get "load_view"
     post "load"
   end

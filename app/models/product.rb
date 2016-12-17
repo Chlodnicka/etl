@@ -151,7 +151,7 @@ class Product < ActiveRecord::Base
     filename = "#{Rails.root}/public/tmp/#{code}/extract/#{code}.html"
     doc = Nokogiri::HTML(open(filename))
     product = {
-        "category" => doc.css('.breadcrumb:last-of-type a span').text,
+        "category" => doc.css('.breadcsrumb:last-of-type a span').text,
         "notes" => doc.css('.ProductSublineTags').text,
         "brand" => doc.css('.specs-group:first-of-type table tbody tr:first-of-type td ul li a').text,
         "model" => doc.css('h1.product-name').text,
@@ -159,11 +159,13 @@ class Product < ActiveRecord::Base
     }
     counter = 1
     reviews_counter = 0
-    !File.exists?(directory_name)
+    reviews_content = []
+
     while File.exists?("#{Rails.root}/public/tmp/#{code}/extract/#{code}_reviews_#{counter.to_s}.html")
       doc = Nokogiri::HTML(open("#{Rails.root}/public/tmp/#{code}/extract/#{code}_reviews_#{counter.to_s}.html"))
       reviews = doc.css('.product-review')
       reviews.each { |review|
+        puts review
         reviews_content[reviews_counter] = parse_review(review)
         reviews_counter +=1
       }
@@ -176,6 +178,39 @@ class Product < ActiveRecord::Base
     }
 
   end
+
+  def produce_json(data)
+    i = 0
+    data["reviews"].each { |rev|
+      review = {
+          'author' => rev['author'],
+          'pros' => rev['pros'],
+          'cons' => rev['cons'],
+          'summary' => rev['summary'],
+          'score' => rev['score'],
+          'time' => rev['time'],
+          'recommendation' => rev['recommendation'],
+          'useful' => rev['useful'],
+          'not_useful' => rev['not_useful'],
+      }
+      reviews = {
+          i => review
+      }
+
+      i +=1
+    }
+
+    product = {
+        'code' => data["product"]["code"],
+        'model' => data["product"]["model"],
+        'category' => data["product"]["category"],
+        'notes' => data["product"]["notes"],
+        'brand' => data["product"]["brand"],
+        'reviews' => reviews
+    }
+
+  end
+
 
   def load
 

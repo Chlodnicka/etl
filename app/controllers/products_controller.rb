@@ -70,49 +70,74 @@ class ProductsController < ApplicationController
     end
   end
 
+  def transform_view
+    @product = Product.find(params[:product_id])
+  end
+
   def transform
-    product = Product.where(:code => product_params["code"]).first
-    if product.status == 'extracted'
-      data = product.transform_data(product_params["code"])
 
-      puts produce_xml(data)
+    @product = Product.find(params[:product_id])
+    if @product.status == 'extracted'
+      data = @product.transform_data(@product.code)
+      File.open("#{Rails.root}/public/tmp/#{product_params["code"]}/#{product_params["code"]}.json", 'w') { |f| f.write(@product.produce_json(data).to_json) }
 
-    #  FileUtils.rm_rf("#{Rails.root}/public/tmp/#{product_params["code"]}/extract")
-
+      @product.status = "transformed"
+      if @product.save
+        FileUtils.rm_rf("#{Rails.root}/public/tmp/#{product_params["code"]}/extract")
+        respond_to do |format|
+          format.html { render :load_view, id: @product.id, notice: 'Data could not have been transformed. Try again later.' }
+          format.json { render :show, status: :created, location: product }
+        end
+      else
+        format.html { render :transform_view, id: @product.id, notice: 'Data transformed successfully. Wanna continue?' }
+        format.json { render json: @product.errors, status: :unprocessable_entity }
+      end
     end
   end
 
-  def load
 
+  def load_view
+    @product = Product.find(params[:product_id])
   end
 
-  def produce_xml(data)
-    require 'builder'
-    xml = Builder::XmlMarkup.new(:indent => 2)
-    xml.instruct! :xml, :encoding => "ASCII"
 
-    data["product"].each { |prod|
-      xml.product do |p|
-        p.code prod.code
-        p.model prod.model
-        p.category prod.category
-        p.notes prod.notes
-        p.brand prod.brand
-        data["reviews_info"].each { |rev|
-          xml.reviews do |r|
-            r.author rev["author"]
-            r.pros rev["pros"]
-            r.cons rev["cons"]
-            r.summary rev["summary"]
-            r.score rev["score"]
-            r.time rev["time"]
-            r.recommendation rev["recommendation"]
-            r.useful rev["useful"]
-            r.not_useful rev["not_useful"]
-          end
+  def load
+    @product = Product.find(params[:product_id])
+    if @product.status == 'transformed'
+      require 'open-uri'
+      xml = Nokogiri::XML(open("#{Rails.root}/public/tmp/#{product_params["code"]}/#{product_params["code"]}.xml"))
+      @product.category = xml.xpath('//product//category')
+      @product.model = xml.xpath('//product//model')
+      @product.brand = xml.xpath('//product//brand')
+      @product.notes = xml.xpath('//product//notes')
+      @product.status = xml.xpath('//product//status')
+
+      if @product.save
+        reviews = xml.xpath('//product//reviews')
+        reviews.each { |review|
+          review_to_save = Review.new()
+          review_to_save.product_id = @product.id
+          review_to_save.author = review
+          review_to_save.pros = @product.id
+          review_to_save.cons = @product.id
+          review_to_save.summary = @product.id
+          review_to_save.useful = @product.id
+          review_to_save.not_useful = @product.id
+          review_to_save.score = @product.id
+          review_to_save.time = @product.id
+          review_to_save.recommendation = @product.id
+          review_to_save.save
         }
+        FileUtils.rm_rf("#{Rails.root}/public/tmp/#{product_params["code"]}/extract")
+        respond_to do |format|
+          format.html { render :load_view, id: @product.id, notice: 'Data could not have been transformed. Try again later.' }
+          format.json { render :show, status: :created, location: product }
+        end
+      else
+        format.html { render :transform_view, id: @product.id, notice: 'Data transformed successfully. Wanna continue?' }
+        format.json { render json: @product.errors, status: :unprocessable_entity }
       end
-    }
+    end
   end
 
   # PATCH/PUT /products/1
@@ -143,10 +168,6 @@ class ProductsController < ApplicationController
       format.html { redirect_to products_url, notice: 'All reviews successfully destroyed' }
       format.json { head :no_content }
     end
-  end
-
-  def transform_view
-
   end
 
   private
