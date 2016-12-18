@@ -10,14 +10,16 @@ class ProductsController < ApplicationController
 
   # GET /products/extracted
   # Get list of products that have status extracted
-  def index_extracted
+  def extracted
     @products = Product.where(:status => 'extracted')
+    render :index
   end
 
   # GET /products/transformed
   # Get list of products that have status transformed
-  def index_transformed
+  def transformed
     @products = Product.where(:status => 'transformed')
+    render :index
   end
 
   # GET /products/1
@@ -40,6 +42,15 @@ class ProductsController < ApplicationController
   # GET /products/1/edit
   # Edit existing product (update reviews, process entry once again)
   def edit
+    if @product.status == 'extracted'
+      respond_to do |format|
+        format.html { render :transform_view, id: @product.id, notice: 'Product already extracted, wanna transform?' }
+      end
+    elsif @product.status == 'transformed'
+      respond_to do |format|
+        format.html { render :load_view, id: @product.id, notice: 'Product already transformed, wanna transform?' }
+      end
+    end
   end
 
   # POST /products
@@ -60,7 +71,6 @@ class ProductsController < ApplicationController
           }
           respond_to do |format|
             format.html { render :show, id: @product.id, notice: 'Product was successfully updated.' }
-            format.json { render :show, status: :ok, location: @product }
           end
         end
       end
@@ -70,7 +80,6 @@ class ProductsController < ApplicationController
     else
       respond_to do |format|
         format.html { redirect_to existing_prod, notice: 'Product already exists. Wanna check for updates?' }
-        format.json { render :show, status: :created, location: @existing_prod }
       end
     end
   end
@@ -96,11 +105,9 @@ class ProductsController < ApplicationController
         FileUtils.rm_rf("#{Rails.root}/public/tmp/#{product_params["code"]}/extract")
         respond_to do |format|
           format.html { render :load_view, id: @product.id, notice: 'Data could not have been transformed. Try again later.' }
-          format.json { render :show, status: :created, location: product }
         end
       else
         format.html { render :transform_view, id: @product.id, notice: 'Data transformed successfully. Wanna continue?' }
-        format.json { render json: @product.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -134,12 +141,10 @@ class ProductsController < ApplicationController
         File.delete("#{Rails.root}/public/tmp/#{product_params["code"]}.json")
         respond_to do |format|
           format.html { render :show, id: @product.id, notice: 'Data has been saved.' }
-          format.json { render :show, status: :created, location: @product }
         end
       else
         respond_to do |format|
           format.html { render :load_view, id: @product.id, notice: 'Data could not have been transformed. Try again later or contact with admin.' }
-          format.json { render json: @product.errors, status: :unprocessable_entity }
         end
       end
     end
@@ -155,10 +160,8 @@ class ProductsController < ApplicationController
       respond_to do |format|
         if @product.update(product_info)
           format.html { redirect_to @product, notice: 'Product was successfully updated.' }
-          format.json { render :show, status: :ok, location: @product }
         else
           format.html { render :edit }
-          format.json { render json: @product.errors, status: :unprocessable_entity }
         end
       end
     end
@@ -189,7 +192,6 @@ class ProductsController < ApplicationController
     }
     respond_to do |format|
       format.html { redirect_to products_url, notice: 'All reviews successfully destroyed' }
-      format.json { head :no_content }
     end
   end
 
@@ -222,11 +224,11 @@ class ProductsController < ApplicationController
     if @product.save
       respond_to do |format|
         format.html { render :transform_view, id: @product.id, notice: 'Data extracted successfully. Wanna continue?' }
-        format.json { render :show, status: :created, location: product }
       end
     else
-      format.html { render :new }
-      format.json { render json: @product.errors, status: :unprocessable_entity }
+      respond_to do |format|
+        format.html { render :new }
+      end
     end
   end
 

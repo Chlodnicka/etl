@@ -1,89 +1,112 @@
 <p id="notice"><%= notice %></p>
 
 <h3>
-  <%= @product.model %>
+  <% if @product.model %>
+      <%= @product.model %>
+  <% else %>
+      <%= @product.code %>
+  <% end %>
 </h3>
 
 <p>
-  <strong>Code:</strong>
-  <%= @product.code %>
+  <% if @product.code && @product.model %>
+      <strong>Code:</strong>
+      <%= @product.code %>
+  <% end %>
 </p>
 
 <p>
-  <strong>Brand:</strong>
-  <%= @product.brand %>
+  <% if @product.brand %>
+      <strong>Brand:</strong>
+      <%= @product.brand %>
+  <% end %>
 </p>
 
 <p>
-  <strong>Category:</strong>
-  <%= @product.category %>
+  <% if @product.category %>
+      <strong>Category:</strong>
+      <%= @product.category %>
+  <% end %>
 </p>
 
 <p>
-  <strong>Notes:</strong>
-  <%= @product.notes %>
+  <% if @product.notes %>
+      <strong>Notes:</strong>
+      <%= @product.notes %>
+  <% end %>
 </p>
 
 <%= link_to 'Update', edit_product_path(@product), class: "btn" %>
-<%= link_to 'Delete reviews', product_delete_reviews_path(@product), class: "btn" %>
-<%= link_to "Export to CSV", product_path(@product, format: "csv"), class: "btn" %>
-<%= link_to 'Back', products_path, class: "btn" %>
+<% if @product.reviews.size > 0 %>
+    <%= link_to 'Delete reviews', product_delete_reviews_path(@product), class: "btn" %>
+    <%= link_to "Export to CSV", product_path(@product, format: "csv"), class: "btn" %>
+<% end %>
+<% if @product.status == 'loaded' %>
+    <%= link_to 'Back', products_path, class: "btn" %>
+<% elsif @product.status == 'extracted' %>
+    <%= link_to 'Back', extracted_products_path, class: "btn" %>
+<% elsif @product.status == 'transformed' %>
+    <%= link_to 'Back', transformed_products_path, class: "btn" %>
+<% end %>
 
-<div class="reviews">
-  <h4>Reviews</h4>
-  <table>
-    <thead>
-    <tr>
-      <th>Summary</th>
-      <th>Pros</th>
-      <th>Cons</th>
-      <th>Time</th>
-      <th>Recommendation</th>
-      <th>Useful</th>
-      <th>Not useful</th>
-      <th>Score</th>
-      <th>Author</th>
-      <th colspan="1" class="action">Actions</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    <% @product.reviews.each do |review| %>
-        <% require 'json' %>
-        <% pros = JSON.parse review.pros %>
-        <% cons = JSON.parse review.cons %>
-        <% i = 0 %>
-        <% j = 0 %>
+<% if @product.reviews.size > 0 %>
+    <div class="reviews">
+      <h4>Reviews</h4>
+      <table>
+        <thead>
         <tr>
-          <td><%= truncate(review.summary, :length => 50, :separator => ' ') %></td>
-          <td>
-            <ul>
-              <% pros.each do |item| %>
-                  <% if i < 3 %>
-                      <li><%= item %></li>
-                  <% end %>
-                  <% i +=1 %>
-              <% end %></ul>
-          </td>
-          <td>
-            <ul>
-              <% cons.each do |item| %>
-                  <% if j < 3 %>
-                      <li><%= item %></li>
-                  <% end %>
-                  <% j +=1 %>
-              <% end %></ul>
-          </td>
-          <td><%= review.time %></td>
-          <td><%= review.recommendation %></td>
-          <td><%= review.useful %></td>
-          <td><%= review.not_useful %></td>
-          <td><%= review.score %></td>
-          <td><%= review.author %></td>
-          <td><%= link_to 'Show', review %></td>
+          <th>Summary</th>
+          <th>Pros</th>
+          <th>Cons</th>
+          <th>Time</th>
+          <th>Recommendation</th>
+          <th>Useful</th>
+          <th>Not useful</th>
+          <th>Score</th>
+          <th>Author</th>
+          <th colspan="1" class="action">Actions</th>
         </tr>
-    <% end %>
-    </tbody>
-  </table>
-</div>
+        </thead>
+
+        <tbody>
+        <% @product.reviews.each do |review| %>
+            <% require 'json' %>
+            <% pros = JSON.parse review.pros %>
+            <% cons = JSON.parse review.cons %>
+            <% i = 0 %>
+            <% j = 0 %>
+            <tr>
+              <td><%= truncate(review.summary, :length => 50, :separator => ' ') %></td>
+              <td>
+                <ul>
+                  <% pros.each do |item| %>
+                      <% if i < 3 %>
+                          <li><%= item %></li>
+                      <% end %>
+                      <% i +=1 %>
+                  <% end %></ul>
+              </td>
+              <td>
+                <ul>
+                  <% cons.each do |item| %>
+                      <% if j < 3 %>
+                          <li><%= item %></li>
+                      <% end %>
+                      <% j +=1 %>
+                  <% end %></ul>
+              </td>
+              <td><%= review.time %></td>
+              <td><%= review.recommendation %></td>
+              <td><%= review.useful %></td>
+              <td><%= review.not_useful %></td>
+              <td><%= review.score %></td>
+              <td><%= review.author %></td>
+              <td><%= link_to 'Show', review %></td>
+            </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+<% end %>
+
 

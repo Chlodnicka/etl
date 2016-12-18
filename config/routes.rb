@@ -1,6 +1,5 @@
 Rails.application.routes.draw do
   resources :reviews
-  resources :products
   resources :products do
     get "delete_reviews"
     post "extract"
@@ -9,10 +8,11 @@ Rails.application.routes.draw do
     patch "transform"
     get "load_view"
     patch "load"
+    get 'extracted', on: :collection
+    get 'transformed', on: :collection
   end
+  resources :products
   root to: 'home#index'
-  get '/products/extracted', to: 'products#index_extracted', as: 'index_extracted_path'
-  get '/products/transformed', to: 'products#index_transformed', as: 'index_transformed_path'
 
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
