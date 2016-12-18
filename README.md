@@ -1,4 +1,4 @@
-# etl
+# ETL
 App to extract data from Ceneo, transform it and load to database. 
 
 Prerequisites:
