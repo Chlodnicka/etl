@@ -34,9 +34,10 @@ class ProductsController < ApplicationController
       @product = Product.new(product_params)
       if is_etl?
         result = @product.etl(product_params["code"])
-        if result['product'].save
+        @product = result['product']
+        if @product.save
           result['reviews'].each { |review|
-            review['product_id'] = result['product'].id
+            review['product_id'] = @product.id
             review = Review.new(review)
             review.save
           }
@@ -77,12 +78,13 @@ class ProductsController < ApplicationController
   end
 
   def transform
-
+    require 'json'
     @product = Product.find(params[:product_id])
     if @product.status == 'extracted'
       data = @product.transform_data(@product.code)
-      File.open("#{Rails.root}/public/tmp/#{product_params["code"]}/#{product_params["code"]}.json", 'w') { |f| f.write(@product.produce_json(data).to_json) }
-
+      File.open("public/tmp/#{product_params["code"]}.json","w") do |f|
+        f.write(data.to_json)
+      end
       @product.status = "transformed"
       if @product.save
         FileUtils.rm_rf("#{Rails.root}/public/tmp/#{product_params["code"]}/extract")
@@ -105,32 +107,22 @@ class ProductsController < ApplicationController
 
   def load
     @product = Product.find(params[:product_id])
+    file = File.read("public/tmp/#{product_params["code"]}.json")
+    data = JSON.parse(file)
+    puts data["product"]
     if @product.status == 'transformed'
-      require 'open-uri'
-      xml = Nokogiri::XML(open("#{Rails.root}/public/tmp/#{product_params["code"]}/#{product_params["code"]}.xml"))
-      @product.category = xml.xpath('//product//category')
-      @product.model = xml.xpath('//product//model')
-      @product.brand = xml.xpath('//product//brand')
-      @product.notes = xml.xpath('//product//notes')
-      @product.status = xml.xpath('//product//status')
-
+      @product.category = data["product"]['category']
+      @product.brand = data["product"]['brand']
+      @product.model = data["product"]['model']
+      @product.notes = data["product"]['notes']
+      @product.status = 'loaded'
       if @product.save
-        reviews = xml.xpath('//product//reviews')
-        reviews.each { |review|
-          review_to_save = Review.new()
-          review_to_save.product_id = @product.id
-          review_to_save.author = review
-          review_to_save.pros = @product.id
-          review_to_save.cons = @product.id
-          review_to_save.summary = @product.id
-          review_to_save.useful = @product.id
-          review_to_save.not_useful = @product.id
-          review_to_save.score = @product.id
-          review_to_save.time = @product.id
-          review_to_save.recommendation = @product.id
-          review_to_save.save
+        data['reviews'].each { |rev|
+          review = Review.new(rev)
+          review.product_id = @product.id
+          review.save
         }
-        FileUtils.rm_rf("#{Rails.root}/public/tmp/#{product_params["code"]}/extract")
+        FileUtils.rm_rf("#{Rails.root}/public/tmp/#{product_params["code"]}")
         respond_to do |format|
           format.html { render :load_view, id: @product.id, notice: 'Data could not have been transformed. Try again later.' }
           format.json { render :show, status: :created, location: product }

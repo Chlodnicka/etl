@@ -8,7 +8,7 @@ Rails.application.routes.draw do
     get "transform"
     patch "transform"
     get "load_view"
-    post "load"
+    patch "load"
   end
   root to: 'home#index'
   # The priority is based upon order of creation: first created -> highest priority.
