@@ -16,10 +16,15 @@ class Product < ActiveRecord::Base
     require 'open-uri'
     filename = 'http://www.ceneo.pl/' + code + '#tab=spec'
     doc = Nokogiri::HTML(open(filename))
+    brand =  doc.css('.specs-group:first-of-type table tbody tr:first-of-type td ul li a').text.gsub(/\s+/, ' ')
+    if brand == ''
+      brand = doc.css('.js_searchInGoogleTooltip').text.gsub(/\s+/, ' ').split(' ', 2)
+      brand = brand[0]
+    end
     product = {
         "category" => doc.css('.breadcrumb:last-of-type a span').text,
         "notes" => doc.css('.ProductSublineTags').text,
-        "brand" => doc.css('.specs-group:first-of-type table tbody tr:first-of-type td ul li a').text,
+        "brand" => brand,
         "model" => doc.css('h1.product-name').text,
         "code" => code
     }
@@ -122,8 +127,7 @@ class Product < ActiveRecord::Base
     open(name, 'w')
     IO.copy_stream(download, name)
     reviews_amount = Nokogiri::HTML(download).css('.page-tab.reviews').text
-    puts reviews_amount
-    if reviews_amount != nil
+    if reviews_amount != ''
       reviews_amount = /[0-9]+/.match(reviews_amount)[0].to_i
       pagination = reviews_amount/10
       last = reviews_amount%10
@@ -150,10 +154,15 @@ class Product < ActiveRecord::Base
     require 'open-uri'
     filename = "#{Rails.root}/public/tmp/#{code}/extract/#{code}.html"
     doc = Nokogiri::HTML(open(filename))
+    brand =  doc.css('.specs-group:first-of-type table tbody tr:first-of-type td ul li a').text.gsub(/\s+/, ' ')
+    if brand == ''
+      brand = doc.css('.js_searchInGoogleTooltip').text.gsub(/\s+/, ' ').split(' ', 2)
+      brand = brand[0]
+    end
     product = {
-        "category" => doc.css('.breadcsrumb:last-of-type a span').text.gsub(/\s+/, ' '),
+        "category" => doc.css('.breadcrumb:last-of-type a span').text,
         "notes" => doc.css('.ProductSublineTags').text.gsub(/\s+/, ' '),
-        "brand" => doc.css('.specs-group:first-of-type table tbody tr:first-of-type td ul li a').text.gsub(/\s+/, ' '),
+        "brand" => brand,
         "model" => doc.css('h1.product-name').text.gsub(/\s+/, ' '),
         "code" => code
     }
@@ -165,7 +174,6 @@ class Product < ActiveRecord::Base
       doc = Nokogiri::HTML(open("#{Rails.root}/public/tmp/#{code}/extract/#{code}_reviews_#{counter.to_s}.html"))
       reviews = doc.css('.product-review')
       reviews.each { |review|
-        puts review
         reviews_content[reviews_counter] = parse_review(review)
         reviews_counter +=1
       }

@@ -48,22 +48,7 @@ class ProductsController < ApplicationController
         end
       end
       if is_extract?
-        directory_name = "#{Rails.root}/public/tmp/#{product_params["code"]}/extract"
-        if !File.exists?(directory_name)
-          FileUtils.mkdir_p(directory_name)
-        end
-        @product.extract(product_params["code"], directory_name)
-        @product.status = "extracted"
-        if @product.save
-          respond_to do |format|
-            format.html { render :transform_view, id: @product.id, notice: 'Data extracted successfully. Wanna continue?' }
-            format.json { render :show, status: :created, location: product }
-          end
-        else
-          format.html { render :new }
-          format.json { render json: @product.errors, status: :unprocessable_entity }
-        end
-
+        extract(product_params)
       end
     else
       respond_to do |format|
@@ -82,7 +67,7 @@ class ProductsController < ApplicationController
     @product = Product.find(params[:product_id])
     if @product.status == 'extracted'
       data = @product.transform_data(@product.code)
-      File.open("public/tmp/#{product_params["code"]}.json","w") do |f|
+      File.open("public/tmp/#{product_params["code"]}.json", "w") do |f|
         f.write(data.to_json)
       end
       @product.status = "transformed"
@@ -123,13 +108,16 @@ class ProductsController < ApplicationController
           review.save
         }
         FileUtils.rm_rf("#{Rails.root}/public/tmp/#{product_params["code"]}")
+        File.delete("#{Rails.root}/public/tmp/#{product_params["code"]}.json")
         respond_to do |format|
-          format.html { render :load_view, id: @product.id, notice: 'Data could not have been transformed. Try again later.' }
-          format.json { render :show, status: :created, location: product }
+          format.html { render :show, id: @product.id, notice: 'Data has been saved.' }
+          format.json { render :show, status: :created, location: @product }
         end
       else
-        format.html { render :transform_view, id: @product.id, notice: 'Data transformed successfully. Wanna continue?' }
-        format.json { render json: @product.errors, status: :unprocessable_entity }
+        respond_to do |format|
+          format.html { render :load_view, id: @product.id, notice: 'Data could not have been transformed. Try again later or contact with admin.' }
+          format.json { render json: @product.errors, status: :unprocessable_entity }
+        end
       end
     end
   end
@@ -137,23 +125,38 @@ class ProductsController < ApplicationController
   # PATCH/PUT /products/1
   # PATCH/PUT /products/1.json
   def update
-    product_info = @product.get_product_from_ceneo(@product.code)
-    @product.check_reviews_and_update(@product)
-    respond_to do |format|
-      if @product.update(product_info)
-        format.html { redirect_to @product, notice: 'Product was successfully updated.' }
-        format.json { render :show, status: :ok, location: @product }
-      else
-        format.html { render :edit }
-        format.json { render json: @product.errors, status: :unprocessable_entity }
+    if is_etl?
+      product_info = @product.get_product_from_ceneo(@product.code)
+      @product.check_reviews_and_update(@product)
+      respond_to do |format|
+        if @product.update(product_info)
+          format.html { redirect_to @product, notice: 'Product was successfully updated.' }
+          format.json { render :show, status: :ok, location: @product }
+        else
+          format.html { render :edit }
+          format.json { render json: @product.errors, status: :unprocessable_entity }
+        end
+      end
+    end
+    if is_extract?
+      @reviews = Review.where(:product_id => @product.id)
+      i = 0
+      count_reviews = @reviews.size
+      @reviews.each { |review|
+        review.destroy
+        i +=1
+      }
+      if i == count_reviews
+        @product.destroy
+        extract(product_params)
       end
     end
   end
 
+
   def delete_reviews
 
     @reviews = Review.where(:product_id => params["product_id"])
-    puts params["product_id"]
 
     @reviews.each { |review|
       review.destroy
@@ -178,8 +181,28 @@ class ProductsController < ApplicationController
     params[:commit] == "Extract"
   end
 
+  def extract(params)
+    @product = Product.new(params)
+    directory_name = "#{Rails.root}/public/tmp/#{params[:code]}/extract"
+    if !File.exists?(directory_name)
+      FileUtils.mkdir_p(directory_name)
+    end
+    @product.extract(params[:code], directory_name)
+    @product.status = "extracted"
+    if @product.save
+      respond_to do |format|
+        format.html { render :transform_view, id: @product.id, notice: 'Data extracted successfully. Wanna continue?' }
+        format.json { render :show, status: :created, location: product }
+      end
+    else
+      format.html { render :new }
+      format.json { render json: @product.errors, status: :unprocessable_entity }
+    end
+  end
+
   # Never trust parameters from the scary internet, only allow the white list through.
   def product_params
     params.require(:product).permit(:code, :brand, :model, :type, :notes)
   end
+
 end
