@@ -62,15 +62,21 @@ class ProductsController < ApplicationController
       @product = Product.new(product_params)
       if is_etl?
         result = @product.etl(product_params["code"])
-        @product = result['product']
-        if @product.save
-          result['reviews'].each { |review|
-            review['product_id'] = @product.id
-            review = Review.new(review)
-            review.save
-          }
+        if result
+          @product = result['product']
+          if @product.save
+            result['reviews'].each { |review|
+              review['product_id'] = @product.id
+              review = Review.new(review)
+              review.save
+            }
+            respond_to do |format|
+              format.html { render :show, id: @product.id, notice: 'Product was successfully updated.' }
+            end
+          end
+        else
           respond_to do |format|
-            format.html { render :show, id: @product.id, notice: 'Product was successfully updated.' }
+            format.html { redirect_to '/products/new', notice: 'There is no product with such code on Ceneo' }
           end
         end
       end
@@ -156,12 +162,18 @@ class ProductsController < ApplicationController
   def update
     if is_etl?
       product_info = @product.get_product_from_ceneo(@product.code)
-      @product.check_reviews_and_update(@product)
-      respond_to do |format|
-        if @product.update(product_info)
-          format.html { redirect_to @product, notice: 'Product was successfully updated.' }
-        else
-          format.html { render :edit }
+      if product_info
+        @product.check_reviews_and_update(@product)
+        respond_to do |format|
+          if @product.update(product_info)
+            format.html { redirect_to @product, notice: 'Product was successfully updated.' }
+          else
+            format.html { render :edit }
+          end
+        end
+      else
+        respond_to do |format|
+          format.html { redirect_to '/products/new', notice: 'There is no product with such code on Ceneo' }
         end
       end
     end
@@ -219,15 +231,21 @@ class ProductsController < ApplicationController
     if !File.exists?(directory_name)
       FileUtils.mkdir_p(directory_name)
     end
-    @product.extract(params[:code], directory_name)
-    @product.status = "extracted"
-    if @product.save
-      respond_to do |format|
-        format.html { render :transform_view, id: @product.id, notice: 'Data extracted successfully. Wanna continue?' }
+    status = @product.extract(params[:code], directory_name)
+    if status
+      @product.status = "extracted"
+      if @product.save
+        respond_to do |format|
+          format.html { render :transform_view, id: @product.id, notice: 'Data extracted successfully. Wanna continue?' }
+        end
+      else
+        respond_to do |format|
+          format.html { render :new }
+        end
       end
     else
       respond_to do |format|
-        format.html { render :new }
+        format.html { redirect_to '/products/new', notice: 'There is no product with such code on Ceneo' }
       end
     end
   end

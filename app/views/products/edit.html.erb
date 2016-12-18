@@ -1,6 +1,28 @@
-<h3>Editing Product</h3>
+<h3>Editing product <%= @product.code %></h3>
 
-<%= render 'form' %>
+<%= form_for(@product) do |f| %>
+    <% if @product.errors.any? %>
+        <div id="error_explanation">
+          <h2><%= pluralize(@product.errors.count, "error") %> prohibited this product from being saved:</h2>
+
+          <ul>
+            <% @product.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+    <% end %>
+
+    <div class="field">
+      <%= f.hidden_field :code%>
+    </div>
+
+    <div class="actions">
+      <%= f.submit "ETL" %>
+      <%= f.submit "Extract" %>
+    </div>
+<% end %>
+
 
 <%= link_to 'Show', @product, class: "btn" %>
 <%= link_to 'Back', products_path, class: "btn" %>

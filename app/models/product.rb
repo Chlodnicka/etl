@@ -2,65 +2,87 @@ class Product < ActiveRecord::Base
 
   has_many :reviews
 
+  validates :code, numericality: true, presence: true
+
   # Initialize etl process
   def etl(code)
     product_info = get_product_from_ceneo(code)
-    product = Product.new(product_info)
-    product.status = "loaded"
-    reviews = get_reviews_from_ceneo(code)
-    result = {
-        'product' => product,
-        'reviews' => reviews
-    }
+    if product_info
+      product = Product.new(product_info)
+      product.status = "loaded"
+      reviews = get_reviews_from_ceneo(code)
+      result = {
+          'product' => product,
+          'reviews' => reviews
+      }
+    else
+      false
+    end
   end
 
   # Open remote file and get product data
   def get_product_from_ceneo(code)
-    require 'open-uri'
-    filename = 'http://www.ceneo.pl/' + code + '#tab=spec'
-    doc = Nokogiri::HTML(open(filename))
-    brand =  doc.css('.specs-group:first-of-type table tbody tr:first-of-type td ul li a').text.gsub(/\s+/, ' ')
-    if brand == ''
-      brand = doc.css('.js_searchInGoogleTooltip').text.gsub(/\s+/, ' ').split(' ', 2)
-      brand = brand[0]
+    begin
+      require 'open-uri'
+      filename = 'http://www.ceneo.pl/' + code + '#tab=spec'
+      doc = Nokogiri::HTML(open(filename))
+      brand = doc.css('.specs-group:first-of-type table tbody tr:first-of-type td ul li a').text.gsub(/\s+/, ' ')
+      if brand == ''
+        brand = doc.css('.js_searchInGoogleTooltip').text.gsub(/\s+/, ' ').split(' ', 2)
+        brand = brand[0]
+      end
+      product = {
+          "category" => doc.css('.breadcrumb:last-of-type a span').text,
+          "notes" => doc.css('.ProductSublineTags').text,
+          "brand" => brand,
+          "model" => doc.css('h1.product-name').text,
+          "code" => code
+      }
+    rescue OpenURI::HTTPError => e
+      if e.message == '404 Not Found'
+        false
+      else
+        raise e
+      end
     end
-    product = {
-        "category" => doc.css('.breadcrumb:last-of-type a span').text,
-        "notes" => doc.css('.ProductSublineTags').text,
-        "brand" => brand,
-        "model" => doc.css('h1.product-name').text,
-        "code" => code
-    }
+
   end
 
   # Open remote file and get product reviews data
   def get_reviews_from_ceneo(code)
+    begin
+      filename = 'http://www.ceneo.pl/' + code + '#tab=reviews'
+      doc = Nokogiri::HTML(open(filename))
 
-    filename = 'http://www.ceneo.pl/' + code + '#tab=reviews'
-    doc = Nokogiri::HTML(open(filename))
-
-    reviews = doc.css('.product-review')
-    reviews_content = []
-    i = 0
-    reviews.each { |review|
-      reviews_content[i] = parse_review(review)
-      i +=1
-    }
-
-    pagination = doc.css('.pagination ul li a')
-    pag_count = pagination.size
-    if pag_count > 1
-      pagination.each { |site|
-        filename = 'http://www.ceneo.pl/' + site['href']
-        doc = Nokogiri::HTML(open(filename))
-        reviews = doc.css('.product-review')
-        reviews.each { |review|
-          reviews_content[i] = parse_review(review)
-          i +=1
-        }
+      reviews = doc.css('.product-review')
+      reviews_content = []
+      i = 0
+      reviews.each { |review|
+        reviews_content[i] = parse_review(review)
+        i +=1
       }
+
+      pagination = doc.css('.pagination ul li a')
+      pag_count = pagination.size
+      if pag_count > 1
+        pagination.each { |site|
+          filename = 'http://www.ceneo.pl/' + site['href']
+          doc = Nokogiri::HTML(open(filename))
+          reviews = doc.css('.product-review')
+          reviews.each { |review|
+            reviews_content[i] = parse_review(review)
+            i +=1
+          }
+        }
+      end
+      reviews_content
+    rescue OpenURI::HTTPError => e
+      if e.message == '404 Not Found'
+        false
+      else
+        raise e
+      end
     end
-    reviews_content
   end
 
   # Parse review data
@@ -119,39 +141,47 @@ class Product < ActiveRecord::Base
 
   # Extract data from remote source
   def extract(code, directory)
-    require 'open-uri'
+    begin
+      require 'open-uri'
 
-    prod_filename = 'http://www.ceneo.pl/' + code + '#tab=spec'
-    download = open(prod_filename)
-    name = "#{directory}/#{code}.html"
-    open(name, 'w')
-    IO.copy_stream(download, name)
+      prod_filename = 'http://www.ceneo.pl/' + code + '#tab=spec'
+      download = open(prod_filename)
+      name = "#{directory}/#{code}.html"
+      open(name, 'w')
+      IO.copy_stream(download, name)
 
-    review_filename_1 = 'http://www.ceneo.pl/' + code + '#tab=reviews'
-    download = open(review_filename_1)
-    name = "#{directory}/#{code}_reviews_1.html"
-    open(name, 'w')
-    IO.copy_stream(download, name)
-    reviews_amount = Nokogiri::HTML(download).css('.page-tab.reviews').text
-    if reviews_amount != ''
-      reviews_amount = /[0-9]+/.match(reviews_amount)[0].to_i
-      pagination = reviews_amount/10
-      last = reviews_amount%10
-      if last > 0
-        pagination +=1
-      end
-
-      i = 1
-      if pagination > 1
-        while i < pagination
-          number = (i+1).to_s
-          filename = "http://www.ceneo.pl/#{code}/opinie-#{number}"
-          download = open(filename)
-          name = "#{directory}/#{code}_reviews_#{number}.html"
-          open(name, 'w')
-          IO.copy_stream(download, name)
-          i +=1
+      review_filename_1 = 'http://www.ceneo.pl/' + code + '#tab=reviews'
+      download = open(review_filename_1)
+      name = "#{directory}/#{code}_reviews_1.html"
+      open(name, 'w')
+      IO.copy_stream(download, name)
+      reviews_amount = Nokogiri::HTML(download).css('.page-tab.reviews').text
+      if reviews_amount != ''
+        reviews_amount = /[0-9]+/.match(reviews_amount)[0].to_i
+        pagination = reviews_amount/10
+        last = reviews_amount%10
+        if last > 0
+          pagination +=1
         end
+
+        i = 1
+        if pagination > 1
+          while i < pagination
+            number = (i+1).to_s
+            filename = "http://www.ceneo.pl/#{code}/opinie-#{number}"
+            download = open(filename)
+            name = "#{directory}/#{code}_reviews_#{number}.html"
+            open(name, 'w')
+            IO.copy_stream(download, name)
+            i +=1
+          end
+        end
+      end
+    rescue OpenURI::HTTPError => e
+      if e.message == '404 Not Found'
+        false
+      else
+        raise e
       end
     end
   end
@@ -161,7 +191,7 @@ class Product < ActiveRecord::Base
     require 'open-uri'
     filename = "#{Rails.root}/public/tmp/#{code}/extract/#{code}.html"
     doc = Nokogiri::HTML(open(filename))
-    brand =  doc.css('.specs-group:first-of-type table tbody tr:first-of-type td ul li a').text.gsub(/\s+/, ' ')
+    brand = doc.css('.specs-group:first-of-type table tbody tr:first-of-type td ul li a').text.gsub(/\s+/, ' ')
     if brand == ''
       brand = doc.css('.js_searchInGoogleTooltip').text.gsub(/\s+/, ' ').split(' ', 2)
       brand = brand[0]

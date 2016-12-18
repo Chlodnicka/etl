@@ -35,5 +35,14 @@
     <%= link_to "Export to CSV", reviews_path(format: "csv"), class: "btn" %>
 <% end %>
 <%= link_to 'New Product', new_product_path, class: "btn" %>
-<%= link_to "Extracted", extracted_products_path, class: "btn" %>
-<%= link_to "Transformed", transformed_products_path, class: "btn" %>
+<% if request.original_fullpath() == '/products/extracted' %>
+    <%= link_to "Transformed", transformed_products_path, class: "btn" %>
+    <%= link_to "Full list", products_path, class: "btn" %>
+<% elsif request.original_fullpath() == '/products/transformed' %>
+    <%= link_to "Extracted", extracted_products_path, class: "btn" %>
+    <%= link_to "Full list", products_path, class: "btn" %>
+<% elsif request.original_fullpath() == '/products' %>
+    <%= link_to "Extracted", extracted_products_path, class: "btn" %>
+    <%= link_to "Transformed", transformed_products_path, class: "btn" %>
+<% end %>
+
