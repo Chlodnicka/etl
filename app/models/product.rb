@@ -1,6 +1,8 @@
 class Product < ActiveRecord::Base
+
   has_many :reviews
 
+  # Initialize etl process
   def etl(code)
     product_info = get_product_from_ceneo(code)
     product = Product.new(product_info)
@@ -12,6 +14,7 @@ class Product < ActiveRecord::Base
     }
   end
 
+  # Open remote file and get product data
   def get_product_from_ceneo(code)
     require 'open-uri'
     filename = 'http://www.ceneo.pl/' + code + '#tab=spec'
@@ -30,6 +33,7 @@ class Product < ActiveRecord::Base
     }
   end
 
+  # Open remote file and get product reviews data
   def get_reviews_from_ceneo(code)
 
     filename = 'http://www.ceneo.pl/' + code + '#tab=reviews'
@@ -59,7 +63,7 @@ class Product < ActiveRecord::Base
     reviews_content
   end
 
-
+  # Parse review data
   def parse_review(review)
 
     pros_array = []
@@ -98,6 +102,7 @@ class Product < ActiveRecord::Base
     }
   end
 
+  # Checks if there is any new product reviews and update it
   def check_reviews_and_update(product)
     new_reviews = get_reviews_from_ceneo(product.code)
     new_reviews.each { |new_review|
@@ -112,6 +117,7 @@ class Product < ActiveRecord::Base
     }
   end
 
+  # Extract data from remote source
   def extract(code, directory)
     require 'open-uri'
 
@@ -150,6 +156,7 @@ class Product < ActiveRecord::Base
     end
   end
 
+  # Transform extracted data
   def transform_data(code)
     require 'open-uri'
     filename = "#{Rails.root}/public/tmp/#{code}/extract/#{code}.html"

@@ -1,8 +1,9 @@
 class ReviewsController < ApplicationController
-  before_action :set_review, only: [:show, :edit, :update, :destroy]
+  before_action :set_review, only: [:show]
 
   # GET /reviews
   # GET /reviews.json
+  # Get all reviews or generates CSV file
   def index
     @reviews = Review.all
     respond_to do |format|
@@ -13,13 +14,14 @@ class ReviewsController < ApplicationController
 
   # GET /reviews/1
   # GET /reviews/1.json
+  # Get specific review
   def show
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_review
-      @review = Review.find(params[:id])
-    end
+  # Set review variable depending on id
+  def set_review
+    @review = Review.find(params[:id])
+  end
 
 end

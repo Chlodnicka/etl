@@ -3,12 +3,26 @@ class ProductsController < ApplicationController
 
   # GET /products
   # GET /products.json
+  # Get list of products that have status loaded
   def index
-    @products = Product.all
+    @products = Product.where(:status => 'loaded')
+  end
+
+  # GET /products/extracted
+  # Get list of products that have status extracted
+  def index_extracted
+    @products = Product.where(:status => 'extracted')
+  end
+
+  # GET /products/transformed
+  # Get list of products that have status transformed
+  def index_transformed
+    @products = Product.where(:status => 'transformed')
   end
 
   # GET /products/1
   # GET /products/1.json
+  # Get specific product and its reviews
   def show
     @reviews = @product.reviews
     respond_to do |format|
@@ -18,16 +32,19 @@ class ProductsController < ApplicationController
   end
 
   # GET /products/new
+  # Create new product - show form
   def new
     @product = Product.new
   end
 
   # GET /products/1/edit
+  # Edit existing product (update reviews, process entry once again)
   def edit
   end
 
   # POST /products
   # POST /products.json
+  # Create new product
   def create
     existing_prod = Product.where(:code => product_params["code"]).first
     if existing_prod == nil
@@ -58,10 +75,14 @@ class ProductsController < ApplicationController
     end
   end
 
+  # GET /products/1/transform_view
+  # Transform extracted data - show form
   def transform_view
     @product = Product.find(params[:product_id])
   end
 
+  # PATCH/PUT /products/1/transform
+  # Transform extracted data
   def transform
     require 'json'
     @product = Product.find(params[:product_id])
@@ -84,12 +105,14 @@ class ProductsController < ApplicationController
     end
   end
 
-
+  # GET /products/1/load_view
+  # Load transformed data - show form
   def load_view
     @product = Product.find(params[:product_id])
   end
 
-
+  # PATCH/PUT /products/1/load
+  # Load transformed data to database
   def load
     @product = Product.find(params[:product_id])
     file = File.read("public/tmp/#{product_params["code"]}.json")
@@ -124,6 +147,7 @@ class ProductsController < ApplicationController
 
   # PATCH/PUT /products/1
   # PATCH/PUT /products/1.json
+  # Update reviews of product
   def update
     if is_etl?
       product_info = @product.get_product_from_ceneo(@product.code)
@@ -154,6 +178,8 @@ class ProductsController < ApplicationController
   end
 
 
+  # GET /product/1/delete_reviews
+  # Delete all reviews of specific product
   def delete_reviews
 
     @reviews = Review.where(:product_id => params["product_id"])
@@ -168,19 +194,23 @@ class ProductsController < ApplicationController
   end
 
   private
-  # Use callbacks to share common setup or constraints between actions.
+
+  # Set product variable depending on id
   def set_product
     @product = Product.find(params[:id])
   end
 
+  # Check if user clicked ETL button
   def is_etl?
     params[:commit] == "ETL"
   end
 
+  # Check if user clicked Extract button
   def is_extract?
     params[:commit] == "Extract"
   end
 
+  # Initialize extraction process
   def extract(params)
     @product = Product.new(params)
     directory_name = "#{Rails.root}/public/tmp/#{params[:code]}/extract"
@@ -200,7 +230,7 @@ class ProductsController < ApplicationController
     end
   end
 
-  # Never trust parameters from the scary internet, only allow the white list through.
+  # Set product fillable parameters
   def product_params
     params.require(:product).permit(:code, :brand, :model, :type, :notes)
   end
