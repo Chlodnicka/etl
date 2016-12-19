@@ -182,6 +182,7 @@ class Product < ActiveRecord::Base
           end
         end
       end
+      true
     rescue OpenURI::HTTPError => e
       if e.message == '404 Not Found'
         false
