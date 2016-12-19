@@ -1,5 +1,5 @@
 class ProductsController < ApplicationController
-  before_action :set_product, only: [:show, :edit, :update]
+  before_action :set_product, only: [:show, :edit, :update, :destroy, :delete_reviews]
 
   # GET /products
   # GET /products.json
@@ -72,6 +72,10 @@ class ProductsController < ApplicationController
             }
             respond_to do |format|
               format.html { render :show, id: @product.id, notice: 'Product was successfully updated.' }
+            end
+          else
+            respond_to do |format|
+              format.html { render :new }
             end
           end
         else
@@ -197,13 +201,27 @@ class ProductsController < ApplicationController
   # Delete all reviews of specific product
   def delete_reviews
 
-    @reviews = Review.where(:product_id => params["product_id"])
+    if @product.reviews.destroy_all
+      respond_to do |format|
+        format.html { redirect_to products_url, notice: 'All reviews successfully destroyed' }
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_to products_url, notice: 'Error occured. Try again.' }
+      end
+    end
 
-    @reviews.each { |review|
-      review.destroy
-    }
+  end
+
+  # GET /product/1/
+  # Delete product with all its reviews
+  def destroy
+    if @product.reviews.destroy_all
+      @product.destroy
+    end
+
     respond_to do |format|
-      format.html { redirect_to products_url, notice: 'All reviews successfully destroyed' }
+      format.html { redirect_to products_path, notice: 'Product successfully destroyed' }
     end
   end
 
@@ -211,7 +229,11 @@ class ProductsController < ApplicationController
 
   # Set product variable depending on id
   def set_product
-    @product = Product.find(params[:id])
+    if params[:id]
+      @product = Product.find(params[:id])
+    else
+      @product = Product.find(params[:product_id])
+    end
   end
 
   # Check if user clicked ETL button

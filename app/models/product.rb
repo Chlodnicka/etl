@@ -2,7 +2,8 @@ class Product < ActiveRecord::Base
 
   has_many :reviews
 
-  validates :code, numericality: true, presence: true
+  validates :code, presence: true
+  validates :code, numericality: true
 
   # Initialize etl process
   def etl(code)
@@ -41,6 +42,8 @@ class Product < ActiveRecord::Base
     rescue OpenURI::HTTPError => e
       if e.message == '404 Not Found'
         false
+      elsif e.message == '503 Service Unavailable'
+        false
       else
         raise e
       end
@@ -78,6 +81,8 @@ class Product < ActiveRecord::Base
       reviews_content
     rescue OpenURI::HTTPError => e
       if e.message == '404 Not Found'
+        false
+      elsif e.message == '503 Service Unavailable'
         false
       else
         raise e
@@ -179,6 +184,8 @@ class Product < ActiveRecord::Base
       end
     rescue OpenURI::HTTPError => e
       if e.message == '404 Not Found'
+        false
+      elsif e.message == '503 Service Unavailable'
         false
       else
         raise e

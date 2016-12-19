@@ -8,10 +8,10 @@ Rails.application.routes.draw do
     patch "transform"
     get "load_view"
     patch "load"
+    patch "load"
     get 'extracted', on: :collection
     get 'transformed', on: :collection
   end
-  resources :products
   root to: 'home#index'
 
   # The priority is based upon order of creation: first created -> highest priority.
