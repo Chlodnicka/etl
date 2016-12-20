@@ -1,5 +1,8 @@
 <h3>Loading product <%= @product.code %></h3>
 
+<% flash.each do |key, value| %>
+    <div class="alert alert-<%= key %>"><%= value %></div>
+<% end %>
 
 <%= form_for @product, :url => product_load_path(@product) do |f| %>
 

@@ -70,8 +70,10 @@ class ProductsController < ApplicationController
               review = Review.new(review)
               review.save
             }
+            size = result['reviews'].size
             respond_to do |format|
-              format.html { render :show, id: @product.id, notice: 'Product was successfully updated.' }
+              flash.now[:alert] = "Product was successfully created. It has #{size} reviews."
+              format.html { render :show, id: @product.id, notice: "Product was successfully created. It has #{size} reviews." }
             end
           else
             respond_to do |format|
@@ -114,10 +116,14 @@ class ProductsController < ApplicationController
       if @product.save
         FileUtils.rm_rf("#{Rails.root}/public/tmp/#{product_params["code"]}/extract")
         respond_to do |format|
-          format.html { render :load_view, id: @product.id, notice: 'Data could not have been transformed. Try again later.' }
+          flash.now[:alert] = 'Data transformed successfully. Created 1 JSON file. Wanna continue'
+          format.html { render :load_view, id: @product.id, notice: 'Data transformed successfully. Created 1 JSON file. Wanna continue?' }
         end
       else
-        format.html { render :transform_view, id: @product.id, notice: 'Data transformed successfully. Wanna continue?' }
+        respond_to do |format|
+          flash.now[:alert] = 'Data could not have been transformed. Try again later.'
+          format.html { render :transform, id: @product.id, notice: 'Data could not have been transformed. Try again later.' }
+        end
       end
     end
   end
@@ -147,14 +153,15 @@ class ProductsController < ApplicationController
           review.product_id = @product.id
           review.save
         }
+        size = data['reviews'].size
         FileUtils.rm_rf("#{Rails.root}/public/tmp/#{product_params["code"]}")
         File.delete("#{Rails.root}/public/tmp/#{product_params["code"]}.json")
         respond_to do |format|
-          format.html { render :show, id: @product.id, notice: 'Data has been saved.' }
+          format.html { render :show, id: @product.id, notice: "Data has been saved. Loaded #{size} reviews to database." }
         end
       else
         respond_to do |format|
-          format.html { render :load_view, id: @product.id, notice: 'Data could not have been transformed. Try again later or contact with admin.' }
+          format.html { render :load_view, id: @product.id, notice: 'Data could not have been loaded to database. Try again later or contact with admin.' }
         end
       end
     end
@@ -258,7 +265,8 @@ class ProductsController < ApplicationController
       @product.status = "extracted"
       if @product.save
         respond_to do |format|
-          format.html { render :transform_view, id: @product.id, notice: 'Data extracted successfully. Wanna continue?' }
+          flash.now[:alert] = "Data extracted successfully. Created #{status} files. Wanna continue?"
+          format.html { render :transform_view, id: @product.id, notice: "Data extracted successfully. Created #{status} files. Wanna continue?" }
         end
       else
         respond_to do |format|

@@ -161,6 +161,7 @@ class Product < ActiveRecord::Base
       open(name, 'w')
       IO.copy_stream(download, name)
       reviews_amount = Nokogiri::HTML(download).css('.page-tab.reviews').text
+      count_files = 1
       if reviews_amount != ''
         reviews_amount = /[0-9]+/.match(reviews_amount)[0].to_i
         pagination = reviews_amount/10
@@ -181,8 +182,9 @@ class Product < ActiveRecord::Base
             i +=1
           end
         end
+        count_files += i
       end
-      true
+      count_files
     rescue OpenURI::HTTPError => e
       if e.message == '404 Not Found'
         false
